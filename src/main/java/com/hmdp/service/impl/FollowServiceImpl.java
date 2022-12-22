@@ -10,6 +10,7 @@ import com.hmdp.service.IFollowService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,8 @@ import java.util.stream.Collectors;
 @Service
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements IFollowService {
 
-    @Resource
-    StringRedisTemplate redisTemplate;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Resource
     IUserService userService;
@@ -50,14 +51,14 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             if (isSuccess) {
                 // 把关注用户的id放入redis的set集合
 
-                redisTemplate.opsForSet().add(key, followUserId.toString());
+                stringRedisTemplate.opsForSet().add(key, followUserId.toString());
             }
         } else {
             // 取消关注 删除
             boolean  isSuccess = remove(new QueryWrapper<Follow>().eq("user_id", userId).eq("follow_user_id", followUserId));
             if (isSuccess) {
                 // 把关注用户的id从redis的set集合移除
-                redisTemplate.opsForSet().remove(key, followUserId.toString());
+                stringRedisTemplate.opsForSet().remove(key, followUserId.toString());
             }
         }
         return Result.ok();
@@ -80,7 +81,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         String k1 = "follows:" + userId;
         // 2. 求交集
         String k2 = "follows:" + id;
-        Set<String> intersect = redisTemplate.opsForSet().intersect(k1, k2);
+        Set<String> intersect = stringRedisTemplate.opsForSet().intersect(k1, k2);
         if (intersect == null || intersect.isEmpty()) {
             return Result.ok(Collections.EMPTY_LIST);
         }
