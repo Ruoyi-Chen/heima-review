@@ -35,6 +35,22 @@ class HmDianPingApplicationTests {
     StringRedisTemplate stringRedisTemplate;
 
     @Test
+    public void testHyperLogLog() {
+        String[] values = new String[1000];
+        int j = 0;
+        for (int i = 0; i < 1000000; i++) {
+            j = i % 1000;
+            values[j] = "user_" + i;
+            if (j == 999) {
+                stringRedisTemplate.opsForHyperLogLog().add("hl2", values);
+            }
+        }
+        Long count = stringRedisTemplate.opsForHyperLogLog().size("hl2");
+        System.out.println(count);
+    }
+
+
+    @Test
     public void loadShopData() {
         // 1. 查询店铺信息
         List<Shop> shops = shopService.list();
